@@ -1,0 +1,54 @@
+<!-- INCLUDE overall_header.html -->
+
+<a name="maincontent"></a>
+
+<h1>{L_ACP_PMREAD_SETTINGS}<!-- IF PMREAD_VERSION --> <span style="font-size:0.6em;">v. {PMREAD_VERSION}</span><!-- ENDIF --></h1>
+<p>{L_ACP_PMREAD_SETTINGS_EXPLAIN}</p>
+
+<form id="acp_pmread_settings" method="post" action="{U_ACTION}">
+	<fieldset>
+		<legend>{L_PMREAD_AUTO_DELETE_OPTIONS}</legend>
+		<dl>
+			<dt><label for="pmread_auto_delete">{L_PMREAD_AUTO_DELETE}</label><br /><span>{L_PMREAD_AUTO_DELETE_EXPLAIN}</span></dt>
+			<dd>
+				<label><input type="radio" class="radio" id="pmread_auto_delete" name="pmread_auto_delete" value="1"<!-- IF S_PMREAD_AUTO_DELETE --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+				<label><input type="radio" class="radio" name="pmread_auto_delete" value="0"<!-- IF not S_PMREAD_AUTO_DELETE --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="pmread_auto_delete_days">{L_PMREAD_AUTO_DELETE_DAYS}</label><br /><span>{L_PMREAD_AUTO_DELETE_DAYS_EXPLAIN}</span></dt>
+			<dd><input type="number" id="pmread_auto_delete_days" name="pmread_auto_delete_days" value="{PMREAD_AUTO_DELETE_DAYS}" min="1" max="3650" /> {L_DAYS}</dd>
+		</dl>
+		<dl>
+			<dt><label for="pmread_exclude_groups">{L_PMREAD_EXCLUDE_GROUPS}</label><br /><span>{L_PMREAD_EXCLUDE_GROUPS_EXPLAIN}</span></dt>
+			<dd>
+				<select name="pmread_exclude_groups[]" id="pmread_exclude_groups" multiple="multiple" size="10">
+					<!-- BEGIN exclude_groups -->
+						<option value="{exclude_groups.GROUP_ID}"<!-- IF exclude_groups.S_SELECTED --> selected="selected"<!-- ENDIF -->>{exclude_groups.GROUP_NAME}</option>
+					<!-- END exclude_groups -->
+				</select>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label>{L_PMREAD_PENDING_DELETE}</label><br /><span>{L_PMREAD_PENDING_DELETE_EXPLAIN}</span></dt>
+			<dd><strong>{PMREAD_PENDING_COUNT}</strong></dd>
+		</dl>
+		<dl>
+			<dt><label>{L_PMREAD_LAST_AUTO_DELETE}</label></dt>
+			<dd>{PMREAD_LAST_GC}</dd>
+		</dl>
+		<dl>
+			<dt><label>{L_PMREAD_RUN_PRUNE}</label><br /><span>{L_PMREAD_RUN_PRUNE_EXPLAIN}</span></dt>
+			<dd><input class="button2" type="submit" name="run_prune" value="{L_PMREAD_RUN_PRUNE_BUTTON}" /></dd>
+		</dl>
+	</fieldset>
+
+	<fieldset class="submit-buttons">
+		<legend>{L_ACP_SUBMIT_CHANGES}</legend>
+		<input class="button1" type="submit" id="submit" name="submit" value="{L_SUBMIT}" />&nbsp;
+		<input class="button2" type="reset" id="reset" name="reset" value="{L_RESET}" />
+		{S_FORM_TOKEN}
+	</fieldset>
+</form>
+
+<!-- INCLUDE overall_footer.html -->
