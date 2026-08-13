@@ -72,13 +72,20 @@ class listener implements EventSubscriberInterface
 	}
 
 	/**
-	* Expose template vars for native phpbb.alert after automatic PM prune.
+	* Expose template vars for native phpbb.alert after automatic PM prune,
+	* plus the flag for the privacy notice shown in the PM compose form.
 	* Pattern taken from salvocortesiano/topreleasers milestone notice.
 	*/
 	public function prepare_prune_notice()
 	{
 		$show = false;
 		$message = '';
+
+		// Privacy notice in the PM compose form (ACP switch, on by default)
+		$this->template->assign_var(
+			'S_PMREAD_PM_NOTICE',
+			!isset($this->config['pmread_pm_notice']) || !empty($this->config['pmread_pm_notice'])
+		);
 
 		if ($this->user->data['user_id'] != ANONYMOUS && empty($this->user->data['is_bot']))
 		{

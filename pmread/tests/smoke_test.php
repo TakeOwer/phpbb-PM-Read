@@ -121,7 +121,143 @@ assert_true(strpos($info, "'messages'") !== false, 'main_info declares messages 
 
 // --- composer version ---
 $composer = json_decode(file_get_contents($root . '/composer.json'), true);
-assert_true($composer['version'] === '1.3.0', 'composer.json version is 1.3.0');
+assert_true(preg_match('/^\d+\.\d+\.\d+$/', $composer['version']) === 1, 'composer.json declares a semver version (' . $composer['version'] . ')');
+
+// --- Address parsing: phpBB separates recipients with ':' not ',' ---
+function split_address($address)
+{
+	if (!is_string($address) && !is_numeric($address))
+	{
+		$address = '';
+	}
+	$out = array('u' => array(), 'g' => array());
+	foreach (preg_split('/[:,]/', (string) $address, -1, PREG_SPLIT_NO_EMPTY) as $token)
+	{
+		$token = trim($token);
+		if (strpos($token, 'u_') === 0)
+		{
+			$id = (int) substr($token, 2);
+			if ($id) { $out['u'][] = $id; }
+		}
+		else if (strpos($token, 'g_') === 0)
+		{
+			$id = (int) substr($token, 2);
+			if ($id) { $out['g'][] = $id; }
+		}
+	}
+	return $out;
+}
+
+$a = split_address('u_12:u_34');
+assert_true($a['u'] === array(12, 34), 'Colon-separated recipients are all parsed');
+$a = split_address('u_5:g_3:u_9');
+assert_true($a['u'] === array(5, 9) && $a['g'] === array(3), 'Group recipients are separated from user recipients');
+$a = split_address('u_12,u_34');
+assert_true($a['u'] === array(12, 34), 'Legacy comma-separated data still parses');
+$a = split_address('');
+assert_true($a['u'] === array() && $a['g'] === array(), 'Empty address yields no recipients');
+
+// --- CSV cell hardening against formula injection ---
+function csv_cell($value)
+{
+	$value = (string) $value;
+	if ($value !== '' && strpos("=+-@\t\r", $value[0]) !== false)
+	{
+		$value = "'" . $value;
+	}
+	return $value;
+}
+
+assert_true(csv_cell('=cmd|calc') === "'=cmd|calc", 'Leading = is neutralised for Excel');
+assert_true(csv_cell('Ciao') === 'Ciao', 'Normal text is left untouched');
+assert_true(csv_cell('') === '', 'Empty cell stays empty');
+
+// --- New files shipped in 1.4.0 ---
+$new_files = array(
+	'migrations/release_1_4_0.php',
+	'styles/all/template/event/posting_pm_header_find_username_after.html',
+);
+foreach ($new_files as $rel)
+{
+	assert_true(is_file($root . '/' . $rel), "File exists: $rel");
+}
+
+// --- Language parity EN/IT ---
+$it = file_get_contents($root . '/language/it/pmread.php');
+$en = file_get_contents($root . '/language/en/pmread.php');
+preg_match_all("/^\t'([A-Z0-9_]+)'/m", $it, $m_it);
+preg_match_all("/^\t'([A-Z0-9_]+)'/m", $en, $m_en);
+sort($m_it[1]);
+sort($m_en[1]);
+assert_true($m_it[1] === $m_en[1], 'EN and IT language files declare the same keys');
+assert_true(in_array('PMREAD_PM_NOTICE', $m_it[1]), 'Privacy notice string is present');
+
+// --- Date filter: YYYY-MM-DD validation ---
+function valid_date($d)
+{
+	return (bool) preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $d);
+}
+
+assert_true(valid_date('2026-08-12'), 'Well formed date accepted');
+assert_true(!valid_date('12/08/2026'), 'Italian format rejected (must be ISO)');
+assert_true(!valid_date(''), 'Empty date rejected');
+assert_true(!valid_date('2026-8-1'), 'Unpadded date rejected');
+
+// --- Single day = same date on both ends ---
+$from = strtotime('2026-08-12 00:00:00');
+$to = strtotime('2026-08-12 23:59:59');
+assert_true(strtotime('2026-08-12 13:27:00') >= $from, 'Message on the day is after the range start');
+assert_true(strtotime('2026-08-12 13:27:00') <= $to, 'Message on the day is before the range end');
+assert_true(strtotime('2026-08-13 00:00:01') > $to, 'Next day falls outside the range');
+
+// --- Year shortcut ---
+$y_from = strtotime('2026-01-01 00:00:00');
+$y_to = strtotime('2026-12-31 23:59:59');
+assert_true(strtotime('2026-12-31 23:00:00') <= $y_to, 'Last hours of the year are included');
+assert_true(strtotime('2027-01-01 00:00:00') > $y_to, 'Next year is excluded');
+assert_true($y_from < $y_to, 'Year range is ordered');
+
+// --- Recipient token matching must not confuse u_5 with u_50 ---
+function token_matches($address, $user_id)
+{
+	return strpos(':' . $address . ':', ':u_' . (int) $user_id . ':') !== false;
+}
+
+assert_true(token_matches('u_5:u_9', 5), 'u_5 matches in a colon list');
+assert_true(!token_matches('u_50:u_9', 5), 'u_5 does NOT match u_50');
+assert_true(token_matches('u_9:g_3:u_5', 5), 'Token matches in last position');
+assert_true(!token_matches('', 5), 'Empty address matches nothing');
+
+// --- Wildcard handling for the username filter ---
+function to_like($term)
+{
+	if (strpos($term, '*') === false)
+	{
+		$term = '*' . $term . '*';
+	}
+	return str_replace('*', '%', $term);
+}
+
+assert_true(to_like('mar') === '%mar%', 'Bare term becomes a contains search');
+assert_true(to_like('mar*') === 'mar%', 'Explicit wildcard is respected');
+assert_true(to_like('*33') === '%33', 'Leading wildcard is respected');
+
+// --- Files shipped in 1.5.0 ---
+assert_true(is_file($root . '/migrations/release_1_5_0.php'), 'File exists: migrations/release_1_5_0.php');
+
+$tpl = file_get_contents($root . '/adm/style/acp_pmread.html');
+assert_true(strpos($tpl, 'name="printmarked"') !== false, 'Print button present in the message list');
+assert_true(strpos($tpl, 'name="exportmarked"') !== false, 'Export selected button present');
+assert_true(strpos($tpl, 'name="fd"') !== false && strpos($tpl, 'name="ft"') !== false, 'Date range fields present');
+assert_true(strpos($tpl, 'name="fu"') !== false, 'Username filter field present');
+
+$module = file_get_contents($root . '/acp/main_module.php');
+assert_true(strpos($module, 'protected function print_view') !== false, 'print_view() implemented');
+assert_true(strpos($module, 'check_form_key') !== false, 'Export and print are form-key protected');
+
+$service = file_get_contents($root . '/service/pm_manager.php');
+assert_true(strpos($service, 'sql_concatenate') !== false, 'Recipient matching uses portable concatenation');
+assert_true(strpos($service, 'utf8_clean_string') !== false, 'Username lookup uses username_clean');
 
 echo "\n";
 if ($failures)

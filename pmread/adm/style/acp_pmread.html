@@ -4,6 +4,59 @@
 
 <h1>{L_ACP_PMREAD}<!-- IF PMREAD_VERSION --> <span style="font-size:0.6em;">v. {PMREAD_VERSION}</span><!-- ENDIF --></h1>
 <p>{L_EXPLAIN}</p>
+
+<form id="pmread_search" name="pmread_search" method="post" action="{U_RESET_FILTER}">
+<fieldset>
+	<legend>{L_PMREAD_SEARCH}</legend>
+	<dl>
+		<dt><label for="fu">{L_PMREAD_SEARCH_USER}</label><br /><span>{L_PMREAD_SEARCH_USER_EXPLAIN}</span></dt>
+		<dd>
+			<input type="text" id="fu" name="fu" value="{FILTER_USER}" size="30" maxlength="255" />
+			<span>&nbsp;<a href="{U_FIND_USER}" onclick="pmread_find_user(this.href); return false;">{L_PMREAD_FIND_USER}</a></span>
+		</dd>
+	</dl>
+	<dl>
+		<dt><label>{L_PMREAD_SEARCH_SCOPE}</label></dt>
+		<dd>
+			<label><input type="radio" class="radio" name="fs" value="any"<!-- IF S_SCOPE_ANY --> checked="checked"<!-- ENDIF --> /> {L_PMREAD_SCOPE_ANY}</label>
+			<label><input type="radio" class="radio" name="fs" value="from"<!-- IF S_SCOPE_FROM --> checked="checked"<!-- ENDIF --> /> {L_PMREAD_SCOPE_FROM}</label>
+			<label><input type="radio" class="radio" name="fs" value="to"<!-- IF S_SCOPE_TO --> checked="checked"<!-- ENDIF --> /> {L_PMREAD_SCOPE_TO}</label>
+		</dd>
+	</dl>
+	<dl>
+		<dt><label for="fe">{L_PMREAD_SEARCH_EMAIL}</label><br /><span>{L_PMREAD_SEARCH_EMAIL_EXPLAIN}</span></dt>
+		<dd><input type="text" id="fe" name="fe" value="{FILTER_EMAIL}" size="30" maxlength="255" /></dd>
+	</dl>
+	<dl>
+		<dt><label for="fk">{L_PMREAD_SEARCH_KEYWORD}</label><br /><span>{L_PMREAD_SEARCH_KEYWORD_EXPLAIN}</span></dt>
+		<dd><input type="text" id="fk" name="fk" value="{FILTER_KEYWORD}" size="30" maxlength="255" /></dd>
+	</dl>
+	<dl>
+		<dt><label for="fd">{L_PMREAD_SEARCH_DATE}</label><br /><span>{L_PMREAD_SEARCH_DATE_EXPLAIN}</span></dt>
+		<dd>
+			<label for="fd">{L_PMREAD_DATE_FROM}</label>
+			<input type="date" id="fd" name="fd" value="{FILTER_DATE_FROM}" />
+			&nbsp;<label for="ft">{L_PMREAD_DATE_TO}</label>
+			<input type="date" id="ft" name="ft" value="{FILTER_DATE_TO}" />
+		</dd>
+	</dl>
+	<dl>
+		<dt><label for="fy">{L_PMREAD_SEARCH_YEAR}</label><br /><span>{L_PMREAD_SEARCH_YEAR_EXPLAIN}</span></dt>
+		<dd><input type="number" id="fy" name="fy" value="{FILTER_YEAR}" min="1970" max="2200" step="1" style="width: 8em;" /></dd>
+	</dl>
+</fieldset>
+
+<fieldset class="submit-buttons">
+	<input class="button1" type="submit" name="dosearch" value="{L_PMREAD_SEARCH_SUBMIT}" />&nbsp;
+	<a class="button2" href="{U_RESET_FILTER}">{L_PMREAD_SEARCH_RESET}</a>
+	{S_FORM_TOKEN}
+</fieldset>
+</form>
+
+<!-- IF S_FILTER_ACTIVE -->
+<p><strong>{L_PMREAD_FILTER_ON}</strong></p>
+<!-- ENDIF -->
+
 <div class="pagination">
 	{TOTAL_ITEMS} &bull;
 	<!-- IF .pagination -->
@@ -13,7 +66,7 @@
 	<!-- ENDIF -->
 </div>
 
-<form id="pmread" method="post" action="{U_ACTION}">
+<form id="pmread" name="pmread" method="post" action="{U_ACTION}">
 <table class="table1" cellspacing="1">
 <thead>
 <tr>
@@ -21,6 +74,7 @@
 	<th style="text-align:center;">{L_MSG_ID}</th>
 	<th style="text-align:center;">{L_FROM}</th>
 	<th style="text-align:center;">{L_TO}</th>
+	<th style="text-align:center;">{L_PMREAD_EXPORT_COL_BCC}</th>
 	<th style="text-align:center;">{L_DATETIME}</th>
 	<th style="text-align:center;">{L_SUBJECT}</th>
 </tr>
@@ -28,7 +82,7 @@
 <tbody>
 <!-- IF not .message -->
 <tr>
-	<td class="row1" colspan="6" style="text-align: center;">{L_NO_MESSAGES}</td>
+	<td class="row1" colspan="7" style="text-align: center;">{L_NO_MESSAGES}</td>
 </tr>
 <!-- ELSE -->
 <!-- BEGIN message -->
@@ -37,11 +91,12 @@
 	<td style="vertical-align: top;text-align:center;">{message.MSG_ID}</td>
 	<td style="vertical-align: top;text-align:center;">{message.FROM}</td>
 	<td style="vertical-align: top;text-align:center;">{message.TO}</td>
+	<td style="vertical-align: top;text-align:center;">{message.BCC}</td>
 	<td style="vertical-align: top;text-align:center;">{message.DATE}</td>
 	<td style="vertical-align: top;text-align:center;">{message.SBJ}</td>
 </tr>
 <tr class="row1">
-	<td colspan="6"><div style="height: 60px; overflow: auto; background-color: #dddddd;"><table style="margin: 0; padding: 0; background-color: #dddddd; border: 0;"><tr style="margin: 0; padding: 0;"><td style="font-size: 8pt; margin: 0; padding: 0;">{message.MSGT}</td></tr></table></div></td>
+	<td colspan="7"><div style="height: 60px; overflow: auto; background-color: #dddddd;"><table style="margin: 0; padding: 0; background-color: #dddddd; border: 0;"><tr style="margin: 0; padding: 0;"><td style="font-size: 8pt; margin: 0; padding: 0;">{message.MSGT}</td></tr></table></div></td>
 </tr>
 <!-- END message -->
 <!-- ENDIF -->
@@ -50,7 +105,11 @@
 
 <fieldset class="display-actions">
 	<input class="button2" type="submit" name="delmarked" value="{L_DELETE_MARKED}" />&nbsp;
-	<input class="button2" type="submit" name="delall" value="{L_DELETE_ALL}" />
+	<input class="button2" type="submit" name="delall" value="{L_DELETE_ALL}" />&nbsp;&nbsp;
+	<input class="button1" type="submit" name="printmarked" value="{L_PMREAD_PRINT_MARKED}" formtarget="_blank" />&nbsp;
+	<input class="button1" type="submit" name="printall" value="{L_PMREAD_PRINT_ALL}" formtarget="_blank" />&nbsp;&nbsp;
+	<input class="button1" type="submit" name="exportmarked" value="{L_PMREAD_EXPORT_MARKED}" />&nbsp;
+	<input class="button1" type="submit" name="exportall" value="{L_PMREAD_EXPORT_ALL}" />
 	<div>
 		<a href="#" onclick="marklist('pmread', 'mark', true); return false;">{L_MARK_ALL}</a> &bull; <a href="#" onclick="marklist('pmread', 'mark', false); return false;">{L_UNMARK_ALL}</a>
 	</div>
@@ -86,6 +145,19 @@ function marklist(id, name, state)
 			rb[i].checked = state;
 		}
 	}
+}
+
+// Opens the standard phpBB member search popup. Defined locally so the page
+// does not depend on find_username() being present in the ACP javascript.
+function pmread_find_user(url)
+{
+	if (typeof find_username === 'function')
+	{
+		find_username(url);
+		return;
+	}
+
+	window.open(url.replace(/&amp;/g, '&'), '_usersearch', 'height=500,resizable=yes,scrollbars=yes,width=760');
 }
 // ]]>
 </script>

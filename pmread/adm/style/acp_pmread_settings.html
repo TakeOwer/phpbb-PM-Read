@@ -43,6 +43,21 @@
 		</dl>
 	</fieldset>
 
+	<fieldset>
+		<legend>{L_PMREAD_NOTICE_OPTIONS}</legend>
+		<dl>
+			<dt><label for="pmread_pm_notice">{L_PMREAD_PM_NOTICE_ENABLE}</label><br /><span>{L_PMREAD_PM_NOTICE_ENABLE_EXPLAIN}</span></dt>
+			<dd>
+				<label><input type="radio" class="radio" id="pmread_pm_notice" name="pmread_pm_notice" value="1"<!-- IF S_PMREAD_PM_NOTICE --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+				<label><input type="radio" class="radio" name="pmread_pm_notice" value="0"<!-- IF not S_PMREAD_PM_NOTICE --> checked="checked"<!-- ENDIF --> /> {L_NO}</label>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label>{L_PMREAD_PM_NOTICE_PREVIEW}</label><br /><span>{L_PMREAD_PM_NOTICE_PREVIEW_EXPLAIN}</span></dt>
+			<dd><div style="padding: 8px 10px; border: 1px solid #bc2a4d; border-radius: 3px; background-color: #fbeaec;"><strong>{L_PMREAD_PM_NOTICE_TITLE}</strong><br />{L_PMREAD_PM_NOTICE}</div></dd>
+		</dl>
+	</fieldset>
+
 	<fieldset class="submit-buttons">
 		<legend>{L_ACP_SUBMIT_CHANGES}</legend>
 		<input class="button1" type="submit" id="submit" name="submit" value="{L_SUBMIT}" />&nbsp;
