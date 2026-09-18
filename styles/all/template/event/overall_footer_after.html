@@ -1,0 +1,28 @@
+<!-- IF S_PMREAD_PRUNE_NOTICE -->
+<div id="pmread-prune-notice-data" hidden
+	 data-title="{L_INFORMATION}"
+	 data-message="{PMREAD_PRUNE_USER_NOTICE}"></div>
+<script>
+(function () {
+	function showPmreadPruneNotice() {
+		var dataEl = document.getElementById('pmread-prune-notice-data');
+		if (!dataEl) {
+			return;
+		}
+
+		var title = dataEl.getAttribute('data-title') || 'Information';
+		var message = dataEl.getAttribute('data-message') || '';
+
+		if (typeof phpbb !== 'undefined' && phpbb.alert && message) {
+			phpbb.alert(title, message);
+		}
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', showPmreadPruneNotice);
+	} else {
+		showPmreadPruneNotice();
+	}
+})();
+</script>
+<!-- ENDIF -->
